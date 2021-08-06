@@ -1,0 +1,254 @@
+setwd("C:/Users/d/Google Drive/Notability/Research and Design_ Data Analysis/midterm")
+
+polls <- read.csv("polls_2020.csv")
+pres <- read.csv("vote_2020.csv")
+
+polls$daysleft <- as.Date("2020-11-3")-as.Date(polls$middate)
+
+pres$margin <- pres$trump - pres$biden
+
+#Question 1.a.i Enter command to create variable for the poll margin here
+polls$margin <- polls$trump - polls$biden
+
+st.names <- unique(sort(polls$state))
+poll.pred <- rep(NA, 51)
+
+for(i in 1:51) {
+  state.data <- subset(polls, subset = (state == st.names[i]))
+  latest <- state.data$daysleft == min(state.data$daysleft)
+  poll.pred[i] <- mean(state.data$margin[latest])
+}
+
+#Question a ii
+plot(x = poll.pred, y=pres$margin, main = "Predicted vs Actual Vote Margin by State + DC", xlab = "Predicted Vote Margin (by polls)", ylab = "Actual Vote Margin")
+
+
+#Question a iii
+
+#empty vector to hold moving averages for states
+poll.pred.ten.day.avg <- rep(NA, 51)
+
+for(i in 1:51) {
+  #subset for  a state at the given state's index
+  state.data <- subset(polls, subset = (state == st.names[i]))
+  #object containing the latest poll for each state
+  latest <- state.data$daysleft == min(state.data$daysleft)
+  
+  poll.pred[i] <- mean(state.data$margin[latest])
+  
+  #subset again to only the 10 days before the election for a given state
+  avg.data <- subset(state.data, subset = ((daysleft <= 10) & (daysleft >= 1) ))
+  
+  #reassign poll prediction variable to the moving average
+  poll.pred.ten.day.avg[i] <- mean(avg.data$margin)
+  
+}
+
+plot(x = poll.pred.ten.day.avg, y=pres$margin, main = "10 Day Moving Avg Predicted Vote Margin vs Actual Vote Margin by State + DC", xlab = "10 Day Moving Avg Predicted Vote Margin (by polls)", ylab = "Actual Vote Margin")
+
+#The scatter plot does not look that different (only slight differences)
+
+
+#Question b  i
+
+#empty vector to hold each state's + DC's prediction error
+prediction_error_vector <- rep(NA, 51)
+
+state_names <- unique(pres$state)
+
+#iterate thru each state and calculate prediction error, save to vector
+for(i in 1:51) {
+  state.data <- subset(polls, subset = (state == st.names[i]))
+  latest <- state.data$daysleft == min(state.data$daysleft)
+  poll.pred[i] <- mean(state.data$margin[latest])
+  
+  #create a variable for the actual margin, at the state currently being indexed
+  actual_margin <- pres$margin[pres$state==st.names[i]]
+  
+  #assign error to vector at the current index being iterated
+  prediction_error_vector[i] <- actual_margin - poll.pred.ten.day.avg[i]
+  
+}
+
+
+#Question b ii
+
+#Average prediction error
+
+avg_prediction_error <- mean(prediction_error_vector)
+#5.72296
+
+#Root mean-squared error
+
+rmse <- sqrt(mean(prediction_error_vector^2))
+#7.361366
+
+#Question b iii
+
+# The polls were not that good at predicting the outcome of the state elections. 
+# The average error was about 5.6%, meaning that the polls on average were off by about 5.6% in each state.
+# The root mean standard error was 7.361366, which will tell us if there were lots of big positive values offset by negative ones. 
+# This does not appear to be the case.
+# 
+# Possible sources of sampling bias may include Trump voters lying in their responses and saying they would vote for Biden or other candidates.
+# Another source of variability could be Trump voters declining to respond to polls (non response).
+
+
+#Question 2 a i
+blackturnout <- read.csv("blackturnout.csv")
+
+dim(blackturnout)
+
+#1237 observations, 7 variables
+
+#Question 2aii
+
+num_districts_with_black_candidates <- 0
+
+#iterate thru column and add 1 to total # black candidates variable if candidate is black
+for(candidate in blackturnout$candidate){
+  if(candidate == 1){
+    num_districts_with_black_candidates <- num_districts_with_black_candidates + 1
+  }
+}
+
+num_districts_with_black_candidates
+#there are 148 black candidates
+
+#question 2a iii
+length(unique(blackturnout$state))
+
+#42 states included in the dataset
+
+
+#Question 2b i
+
+#summary stats for entire dataset
+summary(blackturnout$turnout)
+
+#summary stats for black candidates
+summary(blackturnout$turnout[blackturnout$candidate==1])
+
+#summary stats for non-black candidates
+summary(blackturnout$turnout[blackturnout$candidate==0])
+
+#explanation here
+# Elections with black candidates have a higher turnout than elections with non-black candidates.
+# Mean turnout was 0.4555 for black candidates vs 0.3938 for non black candidates and 0.4 is the dataset average.
+# Median was also slightly higher in elections with black candidates.
+
+#difference in average turnout (of all races, not just black voters) between elections with black and non-black candidates
+mean(blackturnout$turnout[blackturnout$candidate==1]) - mean(blackturnout$turnout[blackturnout$candidate==0])
+
+#Question 2b ii
+
+#variance
+var(blackturnout$turnout)
+
+#variance black candidates
+var(blackturnout$turnout[blackturnout$candidate==1])
+
+#variance non black candidates
+var(blackturnout$turnout[blackturnout$candidate==0])
+
+#standard deviation
+sd(blackturnout$turnout)
+
+#standard deviation of turnout for black candidates
+sd(blackturnout$turnout[blackturnout$candidate==1])
+
+#standard deviation of turnout for non black candidates
+sd(blackturnout$turnout[blackturnout$candidate==0])
+
+#minimum turnout in the dataset
+min(blackturnout$turnout)
+
+#minimum turnout in an election with a black candidate
+min(blackturnout$turnout[blackturnout$candidate==1])
+
+#minimum turnout in an election with a non black candidate
+min(blackturnout$turnout[blackturnout$candidate==0])
+
+
+#maximum turnout in the dataset
+max(blackturnout$turnout)
+
+#maximum turnout in an election with a black candidate
+max(blackturnout$turnout[blackturnout$candidate==1])
+
+#maximum turnout in an election with a non black candidate
+max(blackturnout$turnout[blackturnout$candidate==0])
+
+#Turnout IQR in the entire dataset
+IQR(blackturnout$turnout)
+
+#Turnout IQR for districts with black candidates
+IQR(blackturnout$turnout[blackturnout$candidate==1])
+
+#Turnout IQR for districts with non black candidates
+IQR(blackturnout$turnout[blackturnout$candidate==0])
+
+# Turnout variance, IQR and standard deviation were generally the same for districts with black vs non black candidates.
+# Minimum turnout in districts with black candidates was 0.197 compared to 0.077 for districts without black candidates.
+# Maximum turnout was 0.853 in districts with black candidates compared to 0.977 for disctricts without black candidates.
+
+#Question biii
+
+boxplot(turnout~candidate, data = blackturnout, xlab = "0 = Non black Candidates,  1 = Black", ylab = "Voter Turnout", main = "Voter Turnout in Districts with Black vs Non Black Candidates")
+
+#Question c i
+
+turnout_linear_model <- lm(turnout~candidate, data = blackturnout)
+
+#The outcome variable is the voter turnout and the explanatory variable is weather or not the candidate is black.
+
+#Question c ii
+
+summary(turnout_linear_model)
+The estimate of alpha is about 0.39386. 
+This intercept value is what the model estimates turnout to be when the explanatory variable is equal to zero.
+That is also, what the model estimates the turnout to be when the candidate is not blackturnout
+
+#Question c iii
+
+summary(turnout_linear_model)
+
+The beta coefficient is about 0.06164. 
+This tells us that the model predicts having a black candidate increases turnout by about 0.06164.
+This value for slope is in accordance with our mean values observed in question 2bi,
+mean turnout values were higher in elections with black candidates vs those with non black candidates.
+Thus, the beta coefficient should cause an increase in turnout when the candidate is black.
+
+#Question c iv
+
+We should NOT interpret the estimate of beta as the causal effect of black candidates on the turnout of black voters.
+First, we do not know the races of the individual voters in the dataset, only the races of the candidates.
+Thus, black candidates could increase turnout among non-black voters.
+Additionally, correlation does not equal causation,
+meaning that there could be a correlation between black candidates and higher turnout, 
+but this correlation does not necessarily mean that black candidates cause higher turnout.
+This higher turnout could simply be a product of random chance, and our Beta coefficient does not prove or disprove that.
+
+
+#Question c v
+
+summary(turnout_linear_model)
+
+The R squared of this model was 0.01352,
+meaning that only about 1.3% of the variability in the data can be explained by the model.
+This model does not fit the data well at all.
+
+#Question d i
+
+turnout_linear_model_with_CVAP <- lm(turnout~candidate+CVAP, data = blackturnout)
+
+summary(turnout_linear_model)
+
+The estimate of beta2 is 0.207392. This means that turnout is predicted to increase by
+(0.207392*0.10) = 0.0207392 when the black voting age population in a district increase by 0.1.
+
+#Question d ii
+
+summary(turnout_linear_model)
+summary(turnout_linear_model_with_CVAP)
+

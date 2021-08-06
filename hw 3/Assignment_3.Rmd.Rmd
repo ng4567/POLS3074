@@ -1,0 +1,120 @@
+---
+title: "Assignment#3-3.9.3"
+date: "`r Sys.Date()`"
+output:
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+---
+This is the third assignment about measurement. 
+Chapter 3, Exercise 3.9.3: VOTING IN THE UNITED NATIONS GENERAL ASSEMBLY
+
+## Question 1 
+We begin by examining how the distribution of state ideal points has changed since the end of communism. Plot the distribution of ideal points separately for 1980 and 2000 -- about 10 years before and 10 years after the fall of the Berlin Wall, respectively. Add the median to each plot as a vertical line. How do the two distributions differ? Pay attention to the degree of polarization and give a brief substantive interpretation of the results. Use the quantile() function to quantify the patterns you identiﬁed.
+
+### Answer 1
+```{r, fig.align="center"}
+setwd("C:/HISTPOL802/function")
+unvoting <- read.csv("C:/HISTPOL802/function/qss-master/MEASUREMENT/unvoting.csv")
+un1980 <- subset(unvoting, Year == 1980)
+un2000 <- subset(unvoting, Year == 2000)
+hist(un1980$idealpoint, freq = FALSE, ylim = c(0, 0.7), xlim = c(-3, 3), xlab = "Idealpoints", main = "1980")
+abline(v = median(un1980$idealpoint), col = "red")
+hist(un2000$idealpoint, freq = FALSE, ylim = c(0, 0.7), xlim = c(-3, 3), xlab = "Idealpoints", main = "2000")
+abline(v = median(un2000$idealpoint), col = "blue")
+quantile(un1980$idealpoint)
+quantile(un2000$idealpoint)
+```
+
+In 1980, the distribution of ideal points is similar to a normal distribution, with the ideal points around 0 to be the most concentrated part. The median of ideal points in 1980 is nearly 0 with a slightly negative value.
+In 2000, the distribution of ideal points tends to be concentrated in the negative side, the most concentrated part is nearly -1 and the median is around -0.4 which smaller than that of 1980's graph. Although the range of the distribution moved in a more positive (liberal) direction, the median and the central ideal points distribution tends to shift to the negative (conservative) side as time passed. 
+In short, the ideal points of countries became less liberal since the end of communism.
+
+
+## Question 2
+Next, examine how the number of countries voting with the United States has changed over time. Plot the average percentage agreement with the United States across all countries over time. Also, add the average percentage agreement with Russia as another line for comparison. Using the tapply() function may help with this analysis. Does the United States appear to be getting more or less isolated over time, as compared to Russia? Identify some countries that are consistently pro-US. What are the most pro-Russian countries? Give a brief substantive interpretation of the results.
+
+### Answer 2
+```{r, fig.align="center"}
+years <- unique(unvoting$Year) 
+plot(x = years, y = tapply(unvoting$PctAgreeUS, unvoting$Year, mean, na.rm = TRUE), ylim = c(0, 1), xlab = "Year", ylab = "Average Percent Agreement", main = "Average Percent Agreement with Russia & US", type = "l", col = "blue") 
+lines(x = years, y = tapply(unvoting$PctAgreeRUSSIA, unvoting$Year, mean, na.rm = TRUE), col = "red") 
+text(2000, 0.05, "Voting with US", col = "blue") 
+text(2000, 0.95, "Voting with Russia", col = "red")
+```
+
+In recent years, there have been far fewer pro-US countries than pro-Russia countries. In fact, since the end of World War II, the average percent agreement with Russia appears to increase while the average percent agreement with US has consistently decreased. So the US seems to be getting more isolated over time. The following are the top 5 pro-US and pro-Russian countries according to this measure. 
+```{r}
+proUS <- sort(tapply(unvoting$PctAgreeUS, unvoting$CountryName, mean, na.rm = TRUE), decreasing = TRUE)
+proUS[1:6]
+proRUSSIA <- sort(tapply(unvoting$PctAgreeRUSSIA, unvoting$CountryName, mean, na.rm = TRUE), decreasing = TRUE)
+proRUSSIA[1:6]
+```
+
+The top 5 pro-US countries are Palau, United Kingdom, Taiwan, Israel Federated, States of Micronesia. (Here is a problem: Is Taiwan a country? I could not offer the answer.) The top 5 pro-Russian countries are German Democratic Republic, Czechoslovakia, Belarus, Ukraine, and Poland.
+
+## Question 3
+One problem with using the proportion of votes that agree with the United States or Russia as a measure of state preferences is that the ideological positions, and consequently the voting patterns, of the two countries might themselves have changed over time. This makes it diffiult to know which countries’ ideological positions have changed. Investigate this issue by plotting the evolution of the two countries’ ideal points over time. Add the yearly median ideal point of all countries. How might the results of this analysis modify (or not) your interpretation of the previous analysis?
+
+### Answer 3
+```{r, fig.align="center"}
+plot(x = years, y = unvoting$idealpoint[unvoting$CountryAbb == "USA"], ylim = c(-3, 3), xlab = "Year", ylab = "Ideal Point", main = "The Evolution of Two Countries' Ideal Points", type = "l", col = "blue") 
+lines(x = years, y = unvoting$idealpoint[unvoting$CountryAbb == "RUS"], col = "red") 
+lines(x = years, y = tapply(unvoting$idealpoint, unvoting$Year, median)) 
+text(2010, 2, "US", col = "blue") 
+text(2010, 0.75, "Russia", col = "red") 
+text(2005, -1.5, "Median of\n All Countries")
+```
+
+The plot shows that the United States has remained more liberal than the median UN member-state, and the distance has grown over time. For the world's median, it is clearly shown that the world's median ideal points steadily dropped from 1.1 to approximately -0.4. Hence, we can see the correlation between the decreased percent agreement with US and the countries' median ideal points.
+On the other hand, the ideal points for Russia started to surge near the end of the Cold War (which is nearly 1991), and the numerical values of the ideal points exceed 0 and become positive eventually. Russia has become more liberal than the median UN member-state, but is much closer to the median than the US. This suggests that Russia is becoming more popular not because countries are moving closer to Russia’s ideology, but because Russia has moved closer to the median after the fall of the Soviet Union.
+This outcome modifies my earlier analysis.
+
+## Question 4 
+Let’s examine how countries that were formerly part of the Soviet Union differ in terms of their ideology and UN voting compared to countries that were not part of the Soviet Union. The former Soviet Union countries are Estonia, Latvia, Lithuania, Belarus, Moldova, Ukraine, Armenia, Azerbaijan, Georgia, Kazakhstan, Kyrgyzstan, Tajikistan, Turkmenistan, Uzbekistan, and Russia. The %in% operator, which is used as x %in% y, may be useful. This operator returns a logical vector whose elements are TRUE if the corresponding element of vector x is equal to a value contained invectory and otherwise FALSE. Focus on the most recently available UN data from 2012 and plot each post-Soviet Union state’s ideal point against the proportion of its votes that agree with the United States. Compare the post-Soviet Union states, within the same plot, against the other countries. Brieﬂy comment on what you observe.
+
+### Answer 4
+```{r, fig.align="center"}
+post.soviet <- c("Estonia", "Latvia", "Lithuania", "Belarus", "Moldova", "Ukraine", "Armenia", "Azerbaijan", "Georgia", "Kazakhstan", "Kyrgyzstan", "Tajikistan", "Turkmenistan", "Uzbekistan", "Russia") 
+unvoting$post.soviet <- ifelse(unvoting$CountryName %in% post.soviet, 1, 0) 
+un2012 <- subset(unvoting, Year == 2012) 
+plot(x = un2012$idealpoint[un2012$post.soviet == 1], y =  un2012$PctAgreeUS[un2012$post.soviet == 1], pch = 16, xlim = c(-3, 3), ylim = c(0, 1), col = "red", xlab = "Ideal Points", ylab = "Proportion of Votes Agreeing with US") 
+points(x = un2012$idealpoint[un2012$post.soviet == 0], y = un2012$PctAgreeUS[un2012$post.soviet == 0], pch = 17, col = "blue") 
+text(1.75, 0.2, "Post-Soviet States", col = "red") 
+text(0.5, 0.8, "Other Countries", col = "blue")
+```
+
+I first distinguish the post-Soviet Union states with other countries. The graph shows that the ideal points of post-Soviet Union countries are at the center of the ditribution of the other countries. The distribution of the other countries is more dispersive. Both the other countries and post-Soviet Union states share the trend that the ideal points are positively correlated to the proportion of votes agreeing with the US.
+
+## Question 5
+We have just seen that while some post-Soviet countries have retained nonliberal ideologies, other post-Soviet countries were much more liberal in 2012. Let’s examine how the median ideal points of Soviet/post-Soviet countries and all other countries have varied over all the years in the data. Plot these median ideal points by year. Be sure to indicate 1989, the year of the fall of the Berlin Wall, on the graph. Brieﬂy comment on what you observe.
+
+### Answer 5
+```{r, fig.align="center"}
+soviet <- subset(unvoting, post.soviet == 1) 
+nosoviet <- subset(unvoting, post.soviet == 0) 
+plot(x = years, y = tapply(nosoviet$idealpoint, nosoviet$Year, median, na.rm = TRUE), type = "l", ylim = c(-3, 3), xlab = "Year", ylab = "Ideal point", col = "blue") 
+lines(x = years, y = tapply(soviet$idealpoint, soviet$Year, median, na.rm = TRUE), col = "red") 
+abline(v = 1989, lty = "dashed") 
+text(2000, -1, "Other States", col = "blue") 
+text(1995, 1.2, "Soviet/Post-Soviet States", col = "red")
+```
+
+Before the fall of the Berlin Wall, the median Soviet state was far below (less liberal than) the median non-Soviet UN country. However, since the fall of the Berlin Wall, the median post-Soviet state has actually been more liberal than the median non-post-Soviet UN country.
+
+## Question 6
+Following the end of communism, countries that were formerly part of the Soviet Union have become much more ideologically diverse. Is this also true of the world as a whole? In other words, do countries still divide into two ideological factions? Let’s assess this question by applying the k-means clustering algorithm to ideal points and the proportion of votes agreeing with the United States. Initiate the algorithm with just two centroids and visualize the results separately for 1989 and 2012. Brieﬂy comment on the results.
+
+### Answer 6
+```{r out.width=c('50%', '50%'), fig.show='hold'}
+un1989 <- cbind(unvoting$idealpoint[unvoting$Year == 1989], unvoting$PctAgreeUS[unvoting$Year == 1989])
+un89two.out <- kmeans(un1989, centers = 2)
+plot(un1989, col = un89two.out$cluster + 4, xlab = "Ideal point", ylab = "Percentage of Votes Agreeing with US", xlim = c(-3, 3), ylim = c(0, 1), main = "1989", pch = 16)
+points(un89two.out$centers, pch = 8, cex = 2) 
+un2012 <- cbind(unvoting$idealpoint[unvoting$Year == 2012], unvoting$PctAgreeUS[unvoting$Year == 2012])
+un12two.out <- kmeans(un2012, centers = 2)
+plot(un2012, col = un12two.out$cluster + 4, xlab = "Ideal point", ylab = "Percentage of Votes Agreeing with US", xlim = c(-3, 3), ylim = c(0, 1), main = "2012", pch = 16)
+points(un12two.out$centers, pch = 8, cex = 2) 
+```
+
+It appears that there are indeed two clusters of points in both years. Even in more than 20 years after the fall of communism, the ideology world remains remains to be diverse. It is also interesting to observe that the centroids of the two clusters have not changed much from 1989 to 2012, though they moved slightly in the pro-US direction.

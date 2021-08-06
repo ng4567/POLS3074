@@ -1,0 +1,100 @@
+---
+title: "HW4"
+author: "Nikhil Gopal"
+date: "10/31/2020"
+output: pdf_document
+---
+**Question 1**
+
+```{r}
+data = read.csv("progresa.csv")
+
+treatment_average_turnout = mean(data$t2000[data$treatment==1])
+control_average_turnout = mean(data$t2000[data$treatment==0])
+
+treatement_average_support = mean(data$pri2000s[data$treatment==1])
+control_average_support = mean(data$pri2000s[data$treatment==0])
+
+
+treatement_average_pri_vote_share = mean(data$pri2000v[data$treatment==1])
+control_average_pri_vote_share = mean(data$pri2000v[data$treatment==0])
+
+
+regression_turnout = lm(data$t2000~data$treatment)
+regression_votes_as_share_of_voting_pop = lm(data$pri2000s~data$treatment)
+
+treatment_average_turnout
+control_average_turnout
+
+treatement_average_support
+control_average_support
+
+summary(regression_turnout)
+summary(regression_votes_as_share_of_voting_pop)
+```
+
+Our average treatment group turnout was about 68%, and control group turnout was about 63%. Our treatment average PRI support as a share of voting population was about 38.1% vs 34.5% for control. The linear regression models really do not make any sense to use and are of little statistical value. They both have near zero R^2 values. This is presumably because the treatment column is really categorical data. The data could have been coded as strings of "treatment" vs and "control" as opposed to 0/1. However, our regression models actually predict quite accurately the turnout and PRI party support, all of the estimates are within 1 of their actual mean values. These results do support the hypothesis that the program mobilized support and turnout, since both average values were higher in precints that were in the treatment group compared to the control group.
+
+**Question 2**
+
+```{r}
+
+regression_turnout_using_original_model = lm(t2000~treatment +avgpoverty+pobtot1994+votos1994+pri1994+pan1994+prd1994, data = data)
+regression_support_using_original_model = lm(pri2000s~treatment +avgpoverty+pobtot1994+votos1994+pri1994+pan1994+prd1994, data = data)
+
+summary(regression_turnout_using_original_model)
+summary(regression_support_using_original_model)
+```
+
+According to our model for turnout, all of the other factors have almost 0 effect on turnout, except for treatment which has a coefficient of about 4.55.
+
+For the model for share of voting population, treatment had a lower coefficient of about 2.92. Average poverty had a noticeably higher effect in this model of about 0.53, while the other factors were mostly negligible.
+
+These results are only slightly different than what was obtained in the previous question, but the most important factor in the models remains the treatment variable.
+
+**Question 3**
+```{r}
+
+#Question 3
+natural_turnout_model = lm(t2000~treatment+log(pobtot1994)+t1994+pri1994s+pan1994s+prd1994s+avgpoverty, data = data)
+natural_support_model = lm(pri2000s~treatment+log(pobtot1994)+t1994+pri1994s+pan1994s+prd1994s+avgpoverty, data = data)
+
+summary(natural_turnout_model)
+summary(natural_support_model)
+```
+
+These results are different than what was obtained in the previous model. Population and average poverty have a significant effect in these new models, and treatment has a much smaller influence in these ones (coefficient of -0.15 for turnout and 0.23 for vote share). These natural models fit the data much better, as they had R^2 values of 0.69 and 0.57 compared to 0.06 and 0.2.
+
+**Question 4**
+
+
+```{r}
+#Question 4
+
+#Total population
+boxplot(pobtot1994~treatment, data = data, ylab = "Total 1994 Precinct Population")
+#Avg Poverty
+boxplot(avgpoverty~treatment, data = data, ylab = "Average Poverty")
+#Previous Turnout Rate
+boxplot(t1994~treatment, data = data, ylab = "Previous Turnout Rate as Share of Voting Population")
+#Previous PRI support rate
+boxplot(pri1994s~treatment, data=data, ylab = "Previous PRI Support Rate")
+
+```
+
+It appears that many of the distributions are similar. The treatment group had a wider range of support rates, and had slightly more outliers in most of the distribution. Other than that, medians and IQRs were similar across distributions. This is good because it means that the two groups were likely similar and thus we can use this data to make infrences.
+
+**Question 5**
+
+```{r}
+#Question 5
+
+turnout_rate_as_outcome = lm(t2000r ~ treatment + avgpoverty + log(pobtot1994) + t1994r + pri1994v + pan1994v + prd1994v, data = data)
+summary(turnout_rate_as_outcome)
+
+votes_cast_as_outcome = lm(pri2000v ~ treatment + avgpoverty + log(pobtot1994) + t1994r + pri1994v + pan1994v + prd1994v, data = data)
+summary(votes_cast_as_outcome)
+
+```
+
+When using turnout as the treatment variable, the treatment reduces turnout (evidenced by negative coefficient in the model), suggesting that the cash transfer program isn't effective in increasing turnout. With respect to vote share, treatment still increases PRI vote share, but other variables (average poverty and population) appear to affect vote share more than the treatment, suggesting that the cash transfer program isn't too effective on increasing PRI vote share either.

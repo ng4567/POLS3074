@@ -1,0 +1,279 @@
+---
+title: "HW2"
+author: "Nikhil Gopal"
+date: "10/4/2020"
+output: html_document
+---
+
+2.8.1.1
+
+
+```{r}
+data_TA <- read.csv("STAR.csv")
+library(plyr)
+
+#create a new classtype kinder that recodes classtype column
+data_TA$kinder <- NA
+
+#assign values to the kinder column based on values of the classtype column as detailed below:
+data_TA$kinder[data_TA$classtype == 1] <- "small" 
+data_TA$kinder[data_TA$classtype == 2] <- "regular"
+data_TA$kinder[data_TA$classtype == 3] <- "regular with aid" 
+
+## turn kinder variable into factor type
+data_TA$kinder <- as.factor(data_TA$kinder)
+
+#turn race into a factor object type
+data_TA$race <- as.factor(data_TA$race)
+
+#revalue race column with the assigned 1 = white, 2 = black,, 3/5/6 = others, 4 = hispanic
+data_TA$race <- revalue(data_TA$race, c("1"="white", "2"="black", "3" = "others", "4" = "Hispanic", "5" = "others", "6" = "others"))
+
+
+```
+
+2.8.1.2
+
+```{r}
+
+#mean reading score by class type w NULL values removed 
+tapply(data_TA$g4reading, data_TA$kinder, mean, na.rm=TRUE)
+#standard deviations of class types
+tapply(data_TA$g4reading, data_TA$kinder, sd, na.rm=TRUE)
+
+
+#mean math score by class type w NULL values removed 
+tapply(data_TA$g4math, data_TA$kinder, mean, na.rm=TRUE)
+#standard deviations of class types
+tapply(data_TA$g4math, data_TA$kinder, sd, na.rm=TRUE)
+
+
+#number of observations by class type
+count(data_TA$kinder)
+
+```
+
+
+It appears that class size does not affect reading or math scores that much from the means. All class sizes had reading scores of around 720 with standard deviations of around 50. Additionally, all classes had math scores of around 710 with standard deviations of around 40. Sample sizes were also simlar at about 2200 for regular and with aid, and 1900 for small classes.
+
+
+2.8.1.3
+
+```{r}
+#2.8.1.3
+
+#subset data
+smallclasses <- subset(data_TA, data_TA$kinder == "small")
+regularclasses <- subset(data_TA, data_TA$kinder == "regular")
+
+#reading/math quantiles of small classes
+smallreading <- quantile(smallclasses$g4reading, probs = seq(0.33, 0.66, 0.33), na.rm = TRUE)
+smallmath <- quantile(smallclasses$g4math, probs = seq(0.33, 0.66, 0.33), na.rm = TRUE)
+
+#reading/math quantiles of regular classes
+regularreading <- quantile(regularclasses$g4reading, probs = seq(0.33, 0.66, 0.33), na.rm = TRUE)
+regularmath <- quantile(regularclasses$g4math, probs = seq(0.33, 0.66, 0.33), na.rm = TRUE)
+
+smallreading
+smallmath
+regularreading
+regularmath
+```
+
+All of the quantiles are within 3 points of each other for both math and reading tests. Thus, the quantile analysis does not affect the conclusions drawn in the previous question, since the quantile analysis seems to indicate that there is not much difference in math/reading scores between class sizes.
+
+
+2.8.1.4
+
+```{r}
+
+#2.8.1.4
+
+prop.table(table(data_TA$kinder, data_TA$yearssmall))
+
+#reading scores mean/median
+tapply(data_TA$g4reading, data_TA$yearssmall, mean, na.rm = TRUE)
+tapply(data_TA$g4reading, data_TA$yearssmall, median, na.rm = TRUE)
+
+#math scores mean/median
+tapply(data_TA$g4math, data_TA$yearssmall, median, na.rm = TRUE)
+tapply(data_TA$g4math, data_TA$yearssmall, median, na.rm = TRUE)
+
+#number of students who had small class sizes for a given # of years
+count(data_TA$yearssmall)
+```
+
+Number of years spent in a  small class does not appear to affect reading or math scores in any meaningful way. Reading scores stayed around 720 for students with 1-4 years of small classes, and around 710 for math. Most students in the dataset had no school in small classes (3957), while 768 had 1 year, 390 had 2 years, 353 had 3 years and 857 had 4 years.
+
+2.1.8.5
+
+```{r}
+
+#2.8.1.5
+
+#subset the data to get info for only white and minority students
+
+white <- subset(data_TA, data_TA$race=="white")
+minority <- subset(data_TA, data_TA$race=="black" | data_TA$race=="Hispanic")
+
+#White vs minority math scores by class type
+tapply(white$g4math, white$kinder, mean, na.rm=TRUE)
+tapply(minority$g4math, minority$kinder, mean, na.rm=TRUE)
+
+#White vs minority reading scores by class type
+tapply(white$g4reading, white$kinder, mean, na.rm=TRUE)
+tapply(minority$g4reading, minority$kinder, mean, na.rm=TRUE)
+
+```
+
+Unfortunately, it appears as if the STAR program did not manage to reduce racial disparities in test scores. White students in regular/small classes had average reading scores of about 725 compared to only 690 for minority students. White students also scored higher in math, with average test scores of about 710 for all class sizes and 700 for minority students, except for those in classes with aid who dropped further to about 690.
+
+2.8.1.6
+
+```{r}
+#2.8.1.6
+
+#high school graduation rates by class size
+tapply(data_TA$hsgrad, data_TA$kinder, mean, na.rm = TRUE)
+
+#high school graduation rates by #of years spent in small classes
+tapply(data_TA$hsgrad, data_TA$yearssmall, mean, na.rm = TRUE)
+
+#high school graduation rates by race
+tapply(data_TA$hsgrad, data_TA$race, mean, na.rm = TRUE)
+```
+
+Class size does not appear to affect graduation rate, as all class sizes have about an 83% graduation rate. Students with 4 years of small classes had a noticably higher graduation rate of about 87%, with students having less school with small classes being around 81%. Finally, white and "other" students had a noticably higher graduation rate of about 87% compared to just about 74% for black students. Graduation rate data for Hispanic students was not recorded.
+
+2.8.2.1
+
+```{r}
+#2.8.3.1
+
+leaders <- read.csv("leaders.csv")
+
+#how many assasination attempts
+dim(leaders)
+
+#how many countries are there
+length(unique(leaders$country))
+
+#avg attempts per year
+nrow(leaders)/length(unique(leaders$country))
+```
+
+2.8.3.2
+
+```{r}
+#2.8.3.2
+
+#create a success column in the dataframe, assign a value of 1 if the leader died and 0 if he didn't
+leaders$success <- NA
+
+leaders$success[leaders$result == "dies between a day and a week" 
+               | leaders$result == "dies between a week and a month" 
+               | leaders$result == "dies within a day after the attack"
+               | leaders$result == "dies, timing unknown"] <- 1
+
+leaders$success[leaders$result == "hospitalization but no permanent disability" 
+               | leaders$result == "not wounded"
+               | leaders$result == "plot stopped"
+               | leaders$result == "survives but wounded severely"
+               | leaders$result == "survives, whether wounded unknown"
+               | leaders$result == "wounded lightly"] <- 0
+
+#mean success rate of leader assassination
+mean(leaders$success)
+```
+
+Our success rate was 21.6%, indicating that assassinations are likely not done randomly. If they were done randomly, the success rate would be about 50%.
+
+2.8.3.3
+
+```{r}
+
+#mean polity score before assasination attempt
+mean(leaders$politybefore)
+
+#mean polity score after
+mean(leaders$polityafter)
+
+#Avg polity score before assasination attempt for successful and unsuccessful leaders
+tapply(leaders$politybefore, leaders$success, mean)
+
+#Avg polity score after assasination attempt for successful and unsuccessful leaders
+tapply(leaders$age, leaders$success, mean)
+
+
+```
+
+There is a difference in the polity score of about 1 between successful and unsuccessful assassination attempts. Addtionally, there appears to be a difference of about 3 years on average between successful and unsuccessful attempts.
+
+2.8.3.4
+
+```{r}
+
+#2.8.3.4
+
+#create a new column in the dataframe
+leaders$warbefore <- NA
+
+#create a new column in the dataframe
+leaders$warbefore <- NA
+
+#set value of col to 1 if there was a war before assassination attempt
+leaders$warbefore[leaders$civilwarbefore == 1 | leaders$interwarbefore == 1] <- 1
+
+#set value of col to 0 of no war before assassination attempt
+leaders$warbefore[leaders$civilwarbefore != 1 & leaders$interwarbefore != 1] <- 0
+
+#subsetdata
+warbeforecol <- subset(leaders, leaders$warbefore == 1)
+
+#avg polity before assassination attempt of leaders in countries with war before by success
+tapply(warbeforecol$politybefore, warbeforecol$success, mean)
+
+#avg age of leaders in countries with war b4 attempt by success
+tapply(warbeforecol$age, warbeforecol$success, mean)
+
+```
+
+For countries with war before the attempt, there was a very big difference of 1.55 in polity between successful and unsuccesful assassination attempts. Additionally, leaders who were assassinated in countries that had war before the attempt are on average about 4 years older than leaders who weren't assassinated.
+
+```{r}
+
+#create new column (need to because warbefore = 0, doesn't mean there was a war after)
+leaders$warbefore <- NA
+
+#assign values to the column
+
+leaders$warafter[leaders$civilwarafter == 1 | leaders$interwarafter == 1] <- 1
+
+leaders$warafter[leaders$civilwarafter != 1 & leaders$interwarafter != 1] <- 0
+
+#subset data for warafter column
+waraftercol <- subset(leaders, leaders$warafter == 1)
+
+#average rate of war after assassination attempt for successful vs unsuccessful assasination attempts
+tapply(leaders$warafter, leaders$success, mean)
+
+#average polity after war for successful/unsuccessful attempts
+tapply(leaders$polityafter, leaders$success, mean)
+
+```
+
+Our analysis shows that the rate of war after an successful assassination attempt is 20% vs about 30% for unsuccessful attempts. Thus, it is difficult to say that successful assassinations lead to war. The polity rate for unsuccessful assassinations is about -1.89 and for successful assassination is about -0.76. It appears that successful leader assassinations are correlated with a country becoming more democratic, as demonstrated by the decrease in polity rate.
+
+
+Question 3:
+
+What is research question? What treatment is being randomized? Who is included in sample? What is main finding? What are positives and negatives about study?
+
+The question is weather learning about the opinions of their consitutents affect how legislators vote? The treatment is being exposed to survey data detailing the political opinions of their constituents, and the random sample is being taken from legislators in the New Mexico state legislator. To clarify, half of the state legislature was randomly assigned to review constituent opinions before voting, and their voting waas compared to the other half who did not recieve this info.
+
+The main finding of the research is that exposure to constituent info does affect legislator voting patterns, based on a strong linear relationship observed between constituent support for proposals and a yes vote on proposed law SB24.
+
+I think from this study, it can easily be concluded that these results are reproducible within New Mexico. However, New Mexico has a small legislature, and we don't know what drives voting preferences in other states and countries. Some countries have different regime types meaning that legislator votes often are not driven by constituent preferences at all, so I think one of the major shortcomings of this study is generalizing its conclusions to all legislators, rather than just focusing on the one group being studied. Since it was a randomized control trial, there is more credibility in establishing the causal relationship between constituent opinion and legislator voting, however I remain unsure as to weather I believe it makes a difference or if the researchers just got lucky in this case.
+
+
+

@@ -1,0 +1,12 @@
+---
+title: "HW 1"
+author: "Nikhil Gopal"
+date: "9/19/2020"
+output: html_document
+---
+
+Question 1:
+
+```{r}
+WI76_88
+```
